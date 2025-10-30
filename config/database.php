@@ -58,13 +58,18 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                PDO::MYSQL_ATTR_SSL_CAPATH => null,
-                PDO::MYSQL_ATTR_SSL_CIPHER => null,
-            ]) : [],
+
+            // ✅ Disable SSL entirely if DB_SSLMODE=DISABLED
+            'options' => extension_loaded('pdo_mysql') ? (
+                env('DB_SSLMODE', 'ENABLED') === 'DISABLED' ? [
+                    PDO::ATTR_TIMEOUT => 5,
+                ] : array_filter([
+                    PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+                    PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                ])
+            ) : [],
         ],
+
 
         'mariadb' => [
             'driver' => 'mariadb',
